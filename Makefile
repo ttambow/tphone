@@ -36,7 +36,7 @@ $(target): $(obj_files) $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(dir $@)
 	$(cc) -o $@ $^ $(ldflags)
 
-$(build_dir)/%.o: src/%.c
+$(build_dir)/%.o: src/%.c $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(build_dir)
 	$(cc) $(cflags) -I$(include_dir) -I $(libs_dir) -c $< -o $@
 
