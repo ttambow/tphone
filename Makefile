@@ -1,50 +1,52 @@
-RAYLIB_BASEDIR := ./raylib
-RAYLIB_SRC := $(RAYLIB_BASEDIR)/src
-RAYLIB_REPO := https://github.com/raysan5/raylib.git
-RAYLIB_LIB := libraylib.a
+raylib_basedir := ./raylib
+raylib_src := $(raylib_basedir)/src
+raylib_repo := https://github.com/raysan5/raylib.git
+raylib_lib := libraylib.a
 
-INCLUDE_DIR = include
-BUILD_DIR = build
-LIBS_DIR = libs
+include_dir = include
+build_dir = build
+libs_dir = libs
 
-CC := clang
-CFLAGS := -Wall -Wextra -g -I$(INCLUDE_DIR)
-CFLAGS_RAYLIB := PLATFORM=PLATFORM_DESKTOP STATIC=1
-LDFLAGS = -lm -lpthread -ldl -lrt -lX11
+cc := clang
+cflags := -Wall -Wextra -g -I$(include_dir)
+cflags_raylib := PLATFORM=PLATFORM_DESKTOP STATIC=1
+ldflags = -lm -lpthread -ldl -lrt -lX11
 
-TARGET := $(BUILD_DIR)/tphone
-SRC := $(wildcard src/*.c)
-OBJ := $(SRC:.c=.o)
-SRC_FILES = $(wildcard src/*.c)
-OBJ_FILES = $(patsubst src/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
+target := $(build_dir)/tphone
+src := $(wildcard src/*.c)
+obj := $(src:.c=.o)
+src_files = $(wildcard src/*.c)
+obj_files = $(patsubst src/%.c,$(build_dir)/%.o,$(src_files))
 
-all: $(TARGET)
+all: $(target)
 
-$(LIBS_DIR):
-	mkdir -p $(LIBS_DIR)
+$(libs_dir):
+	mkdir -p $(libs_dir)
 
-$(LIBS_DIR)/$(RAYLIB_LIB): | $(LIBS_DIR)
-	@echo "Building raylib..."
-	git clone --depth 1 $(RAYLIB_REPO) $(RAYLIB_BASEDIR)
-	cd $(RAYLIB_SRC) && make $(CFLAGS_RAYLIB)
-	cp -f $(RAYLIB_SRC)/$(RAYLIB_LIB) $(LIBS_DIR)
-	rm -rf $(RAYLIB_BASEDIR)
+$(libs_dir)/$(raylib_lib): | $(libs_dir)
+	@echo "building raylib..."
+	git clone --depth 1 $(raylib_repo) $(raylib_basedir)
+	cd $(raylib_src) && make $(cflags_raylib)
+	cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)
+	rm -rf $(raylib_basedir)
 
-$(TARGET): $(LIBS_DIR)/$(RAYLIB_LIB) $(OBJ_FILES)
-	$(CC) -v -o $@ $^ $(LIBS_DIR)/$(RAYLIB_LIB) $(LDFLAGS)
+$(target): $(libs_dir)/$(raylib_lib) $(obj_files)
+	$(cc) -v -o $@ $^ $(libs_dir)/$(raylib_lib) $(ldflags)
 
-$(BUILD_DIR)/%.o: src/%.c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -I $(LIBS_DIR) -c $< -o $@
+$(build_dir)/%.o: src/%.c
+	@mkdir -p $(build_dir)
+	$(cc) $(cflags) -I$(include_dir) -I $(libs_dir) -c $< -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(cc) $(cflags) -c $< -o $@
 
 run:
-	make && ./$(TARGET)
+	make && ./$(target)
 
 clean:
-	rm -f $(OBJ) $(TARGET)
-	rm -rf $(BUILD_DIR)
+	rm -f $(obj) $(target)
+	rm -rf $(build_dir)
+	rm -f $(libs_dir)/$(raylib_lib)
+	rm -rf $(raylib_basedir)
 
-.PHONY: all clean
+.phony: all clean
