@@ -2,13 +2,14 @@ raylib_basedir := ./raylib
 raylib_src := $(raylib_basedir)/src
 raylib_repo := https://github.com/raysan5/raylib.git
 raylib_lib := libraylib.a
+raylib_header := raylib.h
 
 include_dir = include
 build_dir = build
 libs_dir = libs
 
 cc := clang
-cflags := -Wall -Wextra -g -I$(include_dir)
+cflags := -Wall -Wextra -g -I$(include_dir) -I$(libs_dir)
 cflags_raylib := PLATFORM=PLATFORM_DESKTOP STATIC=1
 ldflags = -lm -lpthread -ldl -lrt -lX11
 
@@ -27,11 +28,13 @@ $(libs_dir)/$(raylib_lib): | $(libs_dir)
 	@echo "building raylib..."
 	git clone --depth 1 $(raylib_repo) $(raylib_basedir)
 	cd $(raylib_src) && make $(cflags_raylib)
-	cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)
+	cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
+	cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
 	rm -rf $(raylib_basedir)
 
-$(target): $(libs_dir)/$(raylib_lib) $(obj_files)
-	$(cc) -v -o $@ $^ $(libs_dir)/$(raylib_lib) $(ldflags)
+$(target): $(obj_files) $(libs_dir)/$(raylib_lib)
+	@mkdir -p $(dir $@)
+	$(cc) -o $@ $^ $(ldflags)
 
 $(build_dir)/%.o: src/%.c
 	@mkdir -p $(build_dir)
@@ -45,8 +48,8 @@ run:
 
 clean:
 	rm -f $(obj) $(target)
-	rm -rf $(build_dir)
-	rm -f $(libs_dir)/$(raylib_lib)
-	rm -rf $(raylib_basedir)
+	rm -rf $(build_dir)/
+	rm -rf $(libs_dir)/
+	rm -rf $(raylib_basedir)/
 
 .phony: all clean
