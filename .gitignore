@@ -57,3 +57,4 @@ dkms.conf
 raylib/
 build/
 libs/libraylib.a
+.idea/
