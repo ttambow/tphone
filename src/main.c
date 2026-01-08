@@ -2,7 +2,7 @@
 
 int main(void)
 {
-    InitWindow(450, 800, "raylib [core] example - basic window");
+    InitWindow(600, 800, "raylib [core] example - basic window");
 
     while (!WindowShouldClose())
     {
