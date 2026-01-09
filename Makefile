@@ -67,4 +67,4 @@ clean:
 	@rm -rf $(libs_dir)/
 	@rm -rf $(raylib_basedir)/
 
-.PHONY: all clean run dependencies
+.phony: all clean run dependencies
