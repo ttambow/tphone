@@ -1,3 +1,5 @@
+.ONESHELL:
+
 raylib_basedir := ./raylib
 raylib_src := $(raylib_basedir)/src
 raylib_repo := https://github.com/raysan5/raylib.git
@@ -32,19 +34,27 @@ dependencies:
 	@$(foreach pkg,$(debian_pkgs),$(call check_deb_pkg,$(pkg)))
 	@if [ -n "$$missing_deb_pkgs" ]; then \
 		echo "installing missing packages: $$missing_deb_pkgs"; \
-		@sudo apt -y install $$missing_deb_pkgs; \
+		sudo apt -y install $$missing_deb_pkgs; \
 	else \
 		echo "all debian dependencies already installed"; \
 	fi
 
 $(libs_dir)/$(raylib_lib): dependencies # todo: handle git errors
-	@echo "building raylib library..."
 	@mkdir -p $(libs_dir)
-	@git clone --depth 1 $(raylib_repo) $(raylib_basedir)
-	@cd $(raylib_src) && make $(cflags_raylib)
+	@if [ ! -d "$(raylib_basedir)" ]; then \
+  		echo "cloning from git..."
+		git clone --depth 1 $(raylib_repo) $(raylib_basedir) > /dev/null 2>&1; \
+		echo "cloned into $(raylib_basedir)"
+	fi
+#	cd $(raylib_src)
+#	make $(cflags_raylib)
+	@echo "building raylib library..."
+	make -C $(raylib_src) $(cflags_raylib) #> /dev/null 2>&1
+	@echo "built raylib, creating local dependencies..."
 	@cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
 	@cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
 	@rm -rf $(raylib_basedir)
+
 
 $(target): $(obj_files) $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(dir $@)
