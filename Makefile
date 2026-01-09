@@ -20,36 +20,52 @@ src_files = $(wildcard src/*.c)
 obj_files = $(patsubst src/%.c,$(build_dir)/%.o,$(src_files))
 
 all: $(target)
+	@$(MAKE) dependencies || true
 
-$(libs_dir):
-	mkdir -p $(libs_dir)
+debian_pkgs := libx11-dev libglfw3-dev libxcursor-dev libxinerama-dev libxi-dev
 
-$(libs_dir)/$(raylib_lib): | $(libs_dir)
-	@echo "building raylib..."
-	git clone --depth 1 $(raylib_repo) $(raylib_basedir)
-	cd $(raylib_src) && make $(cflags_raylib)
-	cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
-	cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
-	rm -rf $(raylib_basedir)
+define check_deb_pkg
+	dpkg -s $(1) >/dev/null 2>&1 || missing_deb_pkgs += $(1)
+endef
+
+dependencies:
+	@missing_deb_pkgs=""
+	@$(foreach pkg,$(debian_pkgs),$(call check_deb_pkg,$(pkg)))
+	@if [ -n "$$missing_deb_pkgs" ]; then \
+		echo "installing missing packages: $$missing_deb_pkgs"; \
+		@sudo apt -y install $$missing_deb_pkgs; \
+	else \
+		echo "all debian dependencies already installed"; \
+	fi
+
+$(libs_dir)/$(raylib_lib):
+	@echo "building raylib library..."
+	@mkdir -p $(libs_dir)
+	@git clone --depth 1 $(raylib_repo) $(raylib_basedir)
+	@cd $(raylib_src) && make $(cflags_raylib)
+	@cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
+	@cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
+	@rm -rf $(raylib_basedir)
 
 $(target): $(obj_files) $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(dir $@)
-	$(cc) -o $@ $^ $(ldflags)
+	@echo "linking object files to create the executable..."
+	@$(cc) -o $@ $^ $(ldflags)
 
 $(build_dir)/%.o: src/%.c $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(build_dir)
-	$(cc) $(cflags) -I$(include_dir) -I $(libs_dir) -c $< -o $@
+	@echo "compiling $< to object file..."
+	@$(cc) $(cflags) -c $< -o $@
 
-%.o: %.c
-	$(cc) $(cflags) -c $< -o $@
-
-run:
-	make && ./$(target)
+run: all
+	@echo "running the application..."
+	./$(target)
 
 clean:
-	rm -f $(obj) $(target)
-	rm -rf $(build_dir)/
-	rm -rf $(libs_dir)/
-	rm -rf $(raylib_basedir)/
+	@echo "running clean..."
+	@rm -f $(obj) $(target)
+	@rm -rf $(build_dir)/
+	@rm -rf $(libs_dir)/
+	@rm -rf $(raylib_basedir)/
 
-.phony: all clean
+.PHONY: all clean run dependencies
