@@ -37,7 +37,7 @@ dependencies:
 		echo "all debian dependencies already installed"; \
 	fi
 
-$(libs_dir)/$(raylib_lib): dependencies
+$(libs_dir)/$(raylib_lib): dependencies # todo: handle git errors
 	@echo "building raylib library..."
 	@mkdir -p $(libs_dir)
 	@git clone --depth 1 $(raylib_repo) $(raylib_basedir)
