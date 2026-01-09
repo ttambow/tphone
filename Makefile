@@ -1,5 +1,3 @@
-.ONESHELL:
-
 raylib_basedir := ./raylib
 raylib_src := $(raylib_basedir)/src
 raylib_repo := https://github.com/raysan5/raylib.git
@@ -42,14 +40,12 @@ dependencies:
 $(libs_dir)/$(raylib_lib): dependencies # todo: handle git errors
 	@mkdir -p $(libs_dir)
 	@if [ ! -d "$(raylib_basedir)" ]; then \
-  		echo "cloning from git..."
-		git clone --depth 1 $(raylib_repo) $(raylib_basedir) > /dev/null 2>&1; \
-		echo "cloned into $(raylib_basedir)"
+  		echo "cloning from git..."; \
+		git clone --depth 1 $(raylib_repo) $(raylib_basedir) > /dev/null 2>&1 && \
+		echo "cloned into $(raylib_basedir)"; \
 	fi
-#	cd $(raylib_src)
-#	make $(cflags_raylib)
 	@echo "building raylib library..."
-	make -C $(raylib_src) $(cflags_raylib) #> /dev/null 2>&1
+	make -C $(raylib_src) $(cflags_raylib) > /dev/null 2>&1
 	@echo "built raylib, creating local dependencies..."
 	@cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
 	@cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
