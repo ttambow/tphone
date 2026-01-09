@@ -20,7 +20,6 @@ src_files = $(wildcard src/*.c)
 obj_files = $(patsubst src/%.c,$(build_dir)/%.o,$(src_files))
 
 all: $(target)
-	@$(MAKE) dependencies || true
 
 debian_pkgs := libx11-dev libglfw3-dev libxcursor-dev libxinerama-dev libxi-dev
 
@@ -29,7 +28,7 @@ define check_deb_pkg
 endef
 
 dependencies:
-	@missing_deb_pkgs=""
+	@echo "checking dependencies..."
 	@$(foreach pkg,$(debian_pkgs),$(call check_deb_pkg,$(pkg)))
 	@if [ -n "$$missing_deb_pkgs" ]; then \
 		echo "installing missing packages: $$missing_deb_pkgs"; \
@@ -38,7 +37,7 @@ dependencies:
 		echo "all debian dependencies already installed"; \
 	fi
 
-$(libs_dir)/$(raylib_lib):
+$(libs_dir)/$(raylib_lib): dependencies
 	@echo "building raylib library..."
 	@mkdir -p $(libs_dir)
 	@git clone --depth 1 $(raylib_repo) $(raylib_basedir)
