@@ -9,7 +9,7 @@ build_dir = build
 libs_dir = libs
 
 cc := clang
-cflags := -Wall -Wextra -g -I$(include_dir) -I$(libs_dir)
+cflags := -std=c23 -Wall -Wextra -g -I$(include_dir) -I$(libs_dir)
 cflags_raylib := PLATFORM=PLATFORM_DESKTOP STATIC=1
 ldflags = -lm -lpthread -ldl -lrt -lX11
 
@@ -39,18 +39,21 @@ dependencies:
 
 $(libs_dir)/$(raylib_lib): dependencies # todo: handle git errors
 	@mkdir -p $(libs_dir)
-	@if [ ! -d "$(raylib_basedir)" ]; then \
-  		echo "cloning from git..."; \
-		git clone --depth 1 $(raylib_repo) $(raylib_basedir) > /dev/null 2>&1 && \
-		echo "cloned into $(raylib_basedir)"; \
+	@if [ -f "$(libs_dir)/$(raylib_lib)" ] && [ -f "$(libs_dir)/$(raylib_header)" ]; then \
+  		echo "Raylib already built, skipping."; \
+	else \
+		if [ ! -d "$(raylib_basedir)" ]; then \
+			echo "cloning from git..."; \
+			git clone --depth 1 $(raylib_repo) $(raylib_basedir) > /dev/null 2>&1 && \
+			echo "cloned into $(raylib_basedir)"; \
+		fi; \
+		echo "building raylib library..."; \
+		make -C $(raylib_src) $(cflags_raylib) > /dev/null 2>&1; \
+		echo "built raylib, creating local dependencies..."; \
+		cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/; \
+		cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/; \
+		rm -rf $(raylib_basedir); \
 	fi
-	@echo "building raylib library..."
-	make -C $(raylib_src) $(cflags_raylib) > /dev/null 2>&1
-	@echo "built raylib, creating local dependencies..."
-	@cp -f $(raylib_src)/$(raylib_lib) $(libs_dir)/
-	@cp -f $(raylib_src)/$(raylib_header) $(libs_dir)/
-	@rm -rf $(raylib_basedir)
-
 
 $(target): $(obj_files) $(libs_dir)/$(raylib_lib)
 	@mkdir -p $(dir $@)
