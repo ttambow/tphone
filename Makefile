@@ -16,8 +16,7 @@ ldflags = -lm -lpthread -ldl -lrt -lX11
 target := $(build_dir)/tphone
 src := $(wildcard src/*.c)
 obj := $(src:.c=.o)
-src_files = $(wildcard src/*.c)
-obj_files = $(patsubst src/%.c,$(build_dir)/%.o,$(src_files))
+obj_files = $(patsubst src/%.c,$(build_dir)/%.o,$(src))
 
 all: $(target)
 
